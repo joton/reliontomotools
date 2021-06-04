@@ -8,6 +8,7 @@ import mrcfile
 import pandas as pd
 import re
 from docopt import docopt
+from ._version import __version__
 from .utils import rotX, rotY, rotZ, getShiftMatrix
 from .fileIO import readStarFile, writeStarFile, WarpXMLHandler, cleanDir
 
@@ -377,7 +378,8 @@ def warpTomo2RelionProgram(args=None):
               -v --version  Show version.
 
     """
-    arguments = docopt(doc)
+
+    arguments = docopt(doc, version=__version__)
     print(arguments)
 
     xmlTmpl = arguments['-i']
