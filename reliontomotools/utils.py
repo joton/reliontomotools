@@ -18,7 +18,7 @@ def rotX(angle):
     c = np.cos(np.deg2rad(angle))
     s = np.sin(np.deg2rad(angle))
 
-    A = np.array([[1, 0, 0, 0],
+    A = np.matrix([[1, 0, 0, 0],
                   [0, c,-s, 0],
                   [0, s, c, 0],
                   [0, 0, 0, 1]])
@@ -30,7 +30,7 @@ def rotY(angle):
     c = np.cos(np.deg2rad(angle))
     s = np.sin(np.deg2rad(angle))
 
-    A = np.array([[c, 0, s, 0],
+    A = np.matrix([[c, 0, s, 0],
                   [0, 1, 0, 0],
                   [-s,0, c, 0],
                   [0, 0, 0, 1]])
@@ -42,7 +42,7 @@ def rotZ(angle):
     c = np.cos(np.deg2rad(angle))
     s = np.sin(np.deg2rad(angle))
 
-    A = np.array([[c,-s, 0, 0],
+    A = np.matrix([[c,-s, 0, 0],
                   [s, c, 0, 0],
                   [0, 0, 1, 0],
                   [0, 0, 0, 1.]])
@@ -51,11 +51,10 @@ def rotZ(angle):
 
 def getShiftMatrix(shifts):
 
-    if not isinstance(shifts, np.ndarray):
-        shifts = np.array(shifts)
-
-    shiftM = np.identity(4)
-    shiftM[0:3, 3] = shifts
+    shiftM = np.matrix([[1, 0, 0, shifts[0]],
+                        [0, 1, 0, shifts[1]],
+                        [0, 0, 1, shifts[2]],
+                        [0, 0, 0, 1.]])
     return shiftM
 
 

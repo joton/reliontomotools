@@ -68,8 +68,7 @@ class WarpTomo2Relion():
             raise Exception(f'getInvAffineTransforms: Tilt series size in '
                             'Warp {fc} and stack size {self.fc_ts} mismatch.')
 
-        origOffProjAdd = np.identity(4)
-        origOffProjAdd[0:2, 3] = self.origCenter
+        origOffProjAdd = getShiftMatrix([*self.origCenter, 0])
 
         self.flipXYDim = False
 
@@ -113,12 +112,12 @@ class WarpTomo2Relion():
 
         if (self.flipYZ):
             if (self.flipZ):
-                AflipYZ = np.array([[1, 0, 0, 0],
+                AflipYZ = np.matrix([[1, 0, 0, 0],
                                     [0, 0, -1, self.thickness-1],
                                     [0, 1, 0, 0],
                                     [0, 0, 0, 1]])
             else:
-                AflipYZ = np.array([[1, 0, 0, 0],
+                AflipYZ = np.matrix([[1, 0, 0, 0],
                                     [0, 0, 1, 0],
                                     [0, 1, 0, 0],
                                     [0, 0, 0, 1]])
@@ -126,7 +125,7 @@ class WarpTomo2Relion():
             self.h_out = self.h_ali
             self.d_out = self.thickness
         else:
-            AflipYZ = np.identity(4)
+            AflipYZ = np.asmatrix(np.identity(4))
             self.h_out = self.thickness
             self.d_out = self.h_ali
 
@@ -158,10 +157,8 @@ class WarpTomo2Relion():
             raise Exception('Local Warp angles correction is not currently '
                             'supported.')
 
-        origOffProjAdd = np.identity(4)
-        origOffProjSub = np.identity(4)
-        origOffProjAdd[0:2, 3] = self.origCenter
-        origOffProjSub[0:2, 3] = -self.origCenter
+        origOffProjAdd = getShiftMatrix([*self.origCenter, 0])
+        origOffProjSub = getShiftMatrix([*-self.origCenter, 0])
 
         warpAngleTransforms = list()
 
@@ -202,8 +199,12 @@ class WarpTomo2Relion():
 
         for kt in range(self.fc_ts):
 
-            rotProj2Vol = np.linalg.inv(self.warpAngleTransforms[kt]@\
-                                        self.relionTransforms[kt])
+            if applyGlobWarp:
+                rotProj2Vol = (self.warpAngleTransforms[kt]@
+                               self.relionTransforms[kt]).I
+            else:
+                rotProj2Vol = self.relionTransforms[kt].I
+
             rotVol2Proj = self.relionTransforms[kt]
 
             for kp in range(nPart):
@@ -279,13 +280,13 @@ class WarpTomo2Relion():
                 rotMat = self.relionTransforms[k]
 
             dataTilt['_rlnTomoProjX'] = '[{:.13g},{:.13g},{:.13g},{:.13g}]'.\
-                format(*rotMat[0, :])
+                format(*rotMat.A[0, :])
             dataTilt['_rlnTomoProjY'] = '[{:.13g},{:.13g},{:.13g},{:.13g}]'.\
-                format(*rotMat[1, :])
+                format(*rotMat.A[1, :])
             dataTilt['_rlnTomoProjZ'] = '[{:.13g},{:.13g},{:.13g},{:.13g}]'.\
-                format(*rotMat[2, :])
+                format(*rotMat.A[2, :])
             dataTilt['_rlnTomoProjW'] = '[{:.13g},{:.13g},{:.13g},{:.13g}]'.\
-                format(*rotMat[3, :])
+                format(*rotMat.A[3, :])
             dataTilt['_rlnDefocusU'] = '{:.6g}'.format(ctfData[k, 0])
             dataTilt['_rlnDefocusV'] = '{:.6g}'.format(ctfData[k, 1])
             dataTilt['_rlnDefocusAngle'] = '{:.6g}'.format(ctfData[k, 2])
