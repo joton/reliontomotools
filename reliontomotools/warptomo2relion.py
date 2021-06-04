@@ -187,7 +187,7 @@ class WarpTomo2Relion():
 
         return np.column_stack((defMax, defMin, defAngle, dose))
 
-    def getWarpLocalCorrection(self, dataPart):
+    def getWarpLocalCorrection(self, dataPart, applyGlobWarp=True):
 
         nPart = len(dataPart)
 
@@ -219,9 +219,7 @@ class WarpTomo2Relion():
 
         return coordDiff
 
-    def getRelionStarTables(self, dataPart=None, applyGlobWarp=True):
-
-        _applyGlobWarp = np.logical_and(dataPart is not None, applyGlobWarp)
+    def getRelionTomoTables(self, applyGlobWarp=True):
 
         tomoName = self._tomoName if self._tomoName is not None else \
             self.warp.tomoName
@@ -274,7 +272,7 @@ class WarpTomo2Relion():
         for k in range(self.fc_ts):
             dataTilt = dataTomo.iloc[k]
 
-            if _applyGlobWarp:
+            if applyGlobWarp:
                 rotMat = self.warpAngleTransforms[k]@self.relionTransforms[k]
             else:
                 rotMat = self.relionTransforms[k]
@@ -297,33 +295,31 @@ class WarpTomo2Relion():
         tomoTables['global'] = dataGlobal
         tomoTables[tomoName] = dataTomo
 
-        tables = dict(tomo=tomoTables)
+        return tomoTables
 
-        if (_applyGlobWarp):
+    def getRelionMotionTable(self, dataPart, applyGlobWarp=True):
 
-            if '_rlnTomoParticleName' not in dataPart.columns:
-                raise Exception('ERROR: getRelionStarTables requires '
-                                '_rlnTomoParticleName label in particles file.')
+        if '_rlnTomoParticleName' not in dataPart.columns:
+            raise Exception('ERROR: getRelionMotionTable requires '
+                            '_rlnTomoParticleName label in particles file.')
 
-            labelsMotion = ['_rlnOriginXAngst',
-                            '_rlnOriginYAngst',
-                            '_rlnOriginZAngst']
+        labelsMotion = ['_rlnOriginXAngst',
+                        '_rlnOriginYAngst',
+                        '_rlnOriginZAngst']
 
-            motion = self.getWarpLocalCorrection(dataPart).astype(str)
+        motionTable = dict()
+        nPart = len(dataPart)
 
-            dataMotion = dict()
-            nPart = len(dataPart)
+        motion = self.getWarpLocalCorrection(dataPart,
+                                             applyGlobWarp).astype(str)
 
-            print(dataPart)
-            for k in range(nPart):
-                partName = dataPart.loc[k, '_rlnTomoParticleName']
+        for k in range(nPart):
+            partName = dataPart.loc[k, '_rlnTomoParticleName']
 
-                dataMotion[partName] = pd.DataFrame(motion[k, :],
-                                                    columns=labelsMotion)
+            motionTable[partName] = pd.DataFrame(motion[k],
+                                                 columns=labelsMotion)
 
-            tables['motion'] = dataMotion
-
-        return tables
+        return motionTable
 
     def writeTomogramStarFile(self, tomoOutFname, particlesFn=None,
                               motionOutFn=None, applyGlobWarp=True):
@@ -332,19 +328,23 @@ class WarpTomo2Relion():
             dataPart = readStarFile(particlesFn, 'particles')
             dataPart = dataPart.loc[dataPart._rlnTomoName == self._tomoName]
             dataPart = dataPart.reset_index(drop=True)
+            _applyGlobWarp = applyGlobWarp
         else:
             dataPart = None
+            _applyGlobWarp = False
 
-        tables = self.getRelionStarTables(dataPart, applyGlobWarp)
+        tomoTables = self.getRelionTomoTables(_applyGlobWarp)
 
-        writeStarFile(tomoOutFname, tables['tomo'])
+        writeStarFile(tomoOutFname, tomoTables['tomo'])
 
-        if particlesFn is not None:
+        if dataPart is not None:
+            motion = self.getRelionMotionTable(dataPart, _applyGlobWarp)
+
             nPart = len(dataPart)
             motion = dict(general=pd.DataFrame(str(nPart),
                                                index=['_rlnParticleNumber'],
                                                columns=['value']),
-                          **tables['motion'])
+                          **motion)
 
             writeStarFile(motionOutFn, motion)
 
@@ -451,19 +451,19 @@ def warpTomo2RelionProgram(args=None):
             warpTomo = WarpTomo2Relion(tsList[kt], xmlList[kx], thickness,
                                        tomoName=tomoLabel)
 
-            if doTraject:
-                dataPartTomo = dataPart.loc[dataPart._rlnTomoName==tomoLabel]
-                dataPartTomo = dataPartTomo.reset_index(drop=True)
+            tomoData = warpTomo.getRelionTomoTables(applyGlobWarp)
 
-            relionTables = warpTomo.getRelionStarTables(dataPartTomo,
-                                                    applyGlobWarp)
-
-            tomoData = relionTables['tomo']
             globalList.append(tomoData['global'])
             tomoStarTables[tomoLabel] = tomoData[tomoLabel]
 
             if doTraject:
-                motion = dict(motion, **relionTables['motion'])
+                dataPartTomo = dataPart.loc[dataPart._rlnTomoName==tomoLabel]
+                dataPartTomo = dataPartTomo.reset_index(drop=True)
+
+                motionData = warpTomo.getRelionMotionTable(dataPartTomo,
+                                                           applyGlobWarp)
+
+                motion = dict(motion, **motionData)
 
             del warpTomo
 
