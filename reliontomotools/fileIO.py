@@ -6,10 +6,12 @@ Created on Fri May 28 11:20:56 2021
 @author: joton
 """
 
+import os
 import pandas as pd
 import numpy as np
 import io
 import xmltodict
+from glob import glob
 
 from ._version import __version__
 
@@ -249,7 +251,6 @@ class WarpXMLHandler():
 
         return fracDoseV[p]
 
-
     @property
     def tomoName(self):
         tiltFname = self.MoviePath[0]
@@ -270,4 +271,15 @@ class WarpXMLHandler():
             return self.getParam(name)
         # except Exception as ins:
             # print(ins)
+
+
+def cleanDir(path):
+
+    files = glob(os.path.join(path, '*'))
+
+    for f in files:
+        try:
+            os.remove(f)
+        except OSError as e:
+            print("Error: %s : %s" % (f, e.strerror))
 

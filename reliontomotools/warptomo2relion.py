@@ -392,7 +392,10 @@ def warpTomo2RelionProgram(args=None):
     tsList = glob(tsTmpl)
     nTomos = len(xmlList)
 
-    os.makedirs(outRoot, exist_ok=True)
+    if os.path.exists(outRoot):
+        cleanDir(outRoot)
+    else:
+        os.makedirs(outRoot, exist_ok=True)
     tomoOutFname = os.path.join(outRoot, 'tomograms.star')
 
     if doTraject:
