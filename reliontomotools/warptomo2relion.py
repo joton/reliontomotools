@@ -9,7 +9,7 @@ import pandas as pd
 import re
 from docopt import docopt
 from .utils import rotX, rotY, rotZ, getShiftMatrix
-from .fileIO import readStarFile, writeStarFile, WarpXMLHandler
+from .fileIO import readStarFile, writeStarFile, WarpXMLHandler, cleanDir
 
 __all__ = ['WarpTomo2Relion', 'warpTomo2RelionProgram']
 # % Warp To Relion Converter
