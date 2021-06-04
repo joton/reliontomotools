@@ -355,24 +355,23 @@ def warpTomo2RelionProgram(args=None):
     doc = """warptomo2relion: converts warp tomo metadata to Relion.
 
     Usage:
-      warptomo2relion -i <xml_template> -s <ts_template> -d <thickness> [options]
+      warptomo2relion -i <xml_template> -s <ts_template> -d <thickness> -o <outDir> [options]
 
     Arguments:
          -i <xml_template>  Single Warp XML filename or file list/template with
                             wild cards within quotes.
-          -s <ts_template>  Single  tilt series filename or file list/template
+          -s <ts_template>  Single tilt series MRC filename or file list/template
                             with wild cards within quotes.
-            -d <thickness>  Tomogram thickness used for all tomograms, in pixels
+    -d --depth <thickness>  Tomogram thickness used for all tomograms, in pixels
                             at bin1.
-               -o <outDir>  Directory  where output files are stored.
+               -o <outDir>  Directory where output files are created.
     Options:
            --tn <tomoName>  Tomo name template to match XML and tilt series files.
-                            It is used as tomoName label. If not provided, tomoName
-                            is obtained from xml metadata.
-       -p <particles.star>  Particle coordinates to import and convert Warp
-                            local improvements. This option creates a
-                            trajectory file.
+                            It is used as tomoName label. [Default: TS_01]
+         -p <particles_fn>  Relion particle set to convert Warp/M local
+                            mprovements. This option creates a trajectory file.
       --ignore_global_warp  Do not apply global warp angles correction.
+       --ignore_local_warp  Do not apply local warp offsets correction.
 
                  -h --help  Show this screen.
               -v --version  Show version.
@@ -385,11 +384,19 @@ def warpTomo2RelionProgram(args=None):
     xmlTmpl = arguments['-i']
     tsTmpl = arguments['-s']
     outRoot = arguments['-o']
-    thickness = int(arguments['-d'])
+    thickness = int(arguments['--depth'])
     tomoName = arguments['--tn']
     particlesFn = arguments['-p']
     doTraject = particlesFn is not None
-    applyGlobWarp = not arguments['--ignore_global_warp']
+
+    if doTraject:
+        motionOutFn = os.path.join(outRoot, 'motion.star')
+        applyGlobWarp = not arguments['--ignore_global_warp']
+        applyLocalWarp = not arguments['--ignore_local_warp']
+    else:
+        motionOutFn = None
+        applyGlobWarp = False
+        applyLocalWarp = False
 
     xmlList = glob(xmlTmpl)
     tsList = glob(tsTmpl)
@@ -401,12 +408,9 @@ def warpTomo2RelionProgram(args=None):
         os.makedirs(outRoot, exist_ok=True)
     tomoOutFname = os.path.join(outRoot, 'tomograms.star')
 
-    if doTraject:
-        motionOutFn = os.path.join(outRoot, 'motion.star')
-
     if nTomos == 1:
         warpTomo = WarpTomo2Relion(tsList[0], xmlList[0], thickness,
-                                    tomoName=tomoName)
+                                   tomoName=tomoName)
 
         warpTomo.writeTomogramStarFile(tomoOutFname, particlesFn,
                                        motionOutFn, applyGlobWarp)
