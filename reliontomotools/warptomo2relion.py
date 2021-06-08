@@ -391,11 +391,11 @@ def warpTomo2RelionProgram(args=None):
 
     if doTraject:
         motionOutFn = os.path.join(outRoot, 'motion.star')
-        applyGlobWarp = not arguments['--ignore_global_warp']
+        applyGlobalWarp = not arguments['--ignore_global_warp']
         applyLocalWarp = not arguments['--ignore_local_warp']
     else:
         motionOutFn = None
-        applyGlobWarp = False
+        applyGlobalWarp = False
         applyLocalWarp = False
 
     xmlList = glob(xmlTmpl)
@@ -413,7 +413,7 @@ def warpTomo2RelionProgram(args=None):
                                    tomoName=tomoName)
 
         warpTomo.writeTomogramStarFile(tomoOutFname, particlesFn,
-                                       motionOutFn, applyGlobWarp)
+                                       motionOutFn, applyGlobalWarp,
     else:
 
         p = 0
@@ -467,7 +467,7 @@ def warpTomo2RelionProgram(args=None):
                 dataPartTomo = dataPartTomo.reset_index(drop=True)
 
                 motionData = warpTomo.getRelionMotionTable(dataPartTomo,
-                                                           applyGlobWarp)
+                                                           applyGlobWarp,
 
                 motion = dict(motion, **motionData)
 
