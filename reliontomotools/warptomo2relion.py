@@ -455,7 +455,7 @@ def warpTomo2RelionProgram(args=None):
     """
 
     arguments = docopt(doc, version=__version__)
-    print(arguments)
+    # print(arguments)
 
     xmlTmpl = arguments['-i']
     tsTmpl = arguments['-s']
@@ -519,10 +519,6 @@ def warpTomo2RelionProgram(args=None):
     else:
 
         xmlOrder = np.argsort(xmlNums)
-
-        print(xmlLabels)
-        print(tsLabels)
-        print(xmlNums)
 
         if doTraject:
             dataPart = readStarFile(particlesFn, 'particles')
