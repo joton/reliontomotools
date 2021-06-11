@@ -21,7 +21,7 @@ class WarpTomo2Relion():
 
     def __init__(self, origStackFn, xmlFname, thickness, tomoName=None,
                  angpix=-1,
-                 flipZ=True, flipYZ=True, flipAngles=False, hand=-1,
+                 flipZ=False, flipYZ=False, flipAngles=False, hand=-1,
                  aliDims=None, offset3D=[0, 0, 0]):
 
         self.warp = WarpXMLHandler(xmlFname)
@@ -34,8 +34,11 @@ class WarpTomo2Relion():
 
         self.flipAngles = np.logical_xor(self.warp.AreAnglesInverted,
                                          flipAngles)
-        self.flipZ = flipZ
-        self.flipYZ = flipYZ
+
+        # properties flipz and flipYZ are regarding to IMOD, which are True by
+        # default. Input parameters are regarding to Warp
+        self.flipZ = not flipZ
+        self.flipYZ = not flipYZ
         self.hand = hand
 
         mrc = mrcfile.open(origStackFn)
@@ -442,6 +445,9 @@ def warpTomo2RelionProgram(args=None):
       --ignore_global_warp  Do not apply global warp angles correction.
        --ignore_vol_warp    Do not apply local volume warp offsets correction.
        --ignore_img_warp    Do not apply local image warp offsets correction.
+                   --flipZ  Change the sign of Z coordinate.
+                 --flipAng  Change the sign of tilt angles.
+                --hand <h>  Handedness of the tilt geometry. [Default: -1]
 
                  -h --help  Show this screen.
               -v --version  Show version.
@@ -458,6 +464,10 @@ def warpTomo2RelionProgram(args=None):
     tomoName = arguments['--tn']
     particlesFn = arguments['-p']
     doTraject = particlesFn is not None
+
+    flipZ = arguments['--flipZ']
+    flipAngles = arguments['--flipAng']
+    hand = arguments['--hand']
 
     os.makedirs(outRoot, exist_ok=True)
     tomoOutFname = os.path.join(outRoot, 'tomograms.star')
@@ -482,7 +492,8 @@ def warpTomo2RelionProgram(args=None):
 
     if nTomos == 1:
         warpTomo = WarpTomo2Relion(tsList[0], xmlList[0], thickness,
-                                   tomoName=tomoName)
+                                   tomoName=tomoName, flipZ=flipZ,
+                                   flipAngles=flipAngles, hand=hand)
 
         warpTomo.writeTomogramStarFile(tomoOutFname, particlesFn,
                                        motionOutFn, applyGlobalWarp,
@@ -529,7 +540,8 @@ def warpTomo2RelionProgram(args=None):
             kt = np.nonzero(tomoLabel == tsLabels)[0][0]
 
             warpTomo = WarpTomo2Relion(tsList[kt], xmlList[kx], thickness,
-                                       tomoName=tomoLabel)
+                                       tomoName=tomoLabel, flipZ=flipZ,
+                                       flipAngles=flipAngles, hand=hand)
 
             tomoData = warpTomo.getRelionTomoTables(applyGlobalWarp)
 
