@@ -441,7 +441,7 @@ def warpTomo2RelionProgram(args=None):
            --tn <tomoName>  Tomo name template to match XML and tilt series files.
                             It is used as tomoName label. [Default: TS_01]
          -p <particles_fn>  Relion particle set to convert Warp/M local
-                            mprovements. This option creates a trajectory file.
+                            improvements. This option creates a trajectory file.
       --ignore_global_warp  Do not apply global warp angles correction.
          --ignore_vol_warp  Do not apply local volume warp offsets correction.
          --ignore_img_warp  Do not apply local image warp offsets correction.
