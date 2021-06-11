@@ -443,8 +443,8 @@ def warpTomo2RelionProgram(args=None):
          -p <particles_fn>  Relion particle set to convert Warp/M local
                             mprovements. This option creates a trajectory file.
       --ignore_global_warp  Do not apply global warp angles correction.
-       --ignore_vol_warp    Do not apply local volume warp offsets correction.
-       --ignore_img_warp    Do not apply local image warp offsets correction.
+         --ignore_vol_warp  Do not apply local volume warp offsets correction.
+         --ignore_img_warp  Do not apply local image warp offsets correction.
                    --flipZ  Change the sign of Z coordinate.
                  --flipAng  Change the sign of tilt angles.
                 --hand <h>  Handedness of the tilt geometry. [Default: -1]
