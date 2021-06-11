@@ -9,6 +9,7 @@ import pandas as pd
 from docopt import docopt
 from scipy.interpolate import interpn
 import mrcfile
+from tqdm import tqdm
 from ._version import __version__
 from .utils import rotX, rotY, rotZ, getShiftMatrix
 from .fileIO import readStarFile, writeStarFile, WarpXMLHandler
@@ -531,10 +532,12 @@ def warpTomo2RelionProgram(args=None):
 
         globalList = list()
 
+        pbar = tqdm(total=nTomos, unit="Tomos", ncols=80)
+
         for kx in xmlOrder:
 
             tomoLabel = str(xmlLabels[kx])
-            print(f'processing {tomoLabel}')
+            pbar.write(f'Tomogram {tomoLabel}')
 
             kt = np.nonzero(tomoLabel == tsLabels)[0][0]
 
@@ -559,6 +562,7 @@ def warpTomo2RelionProgram(args=None):
                 motion = dict(motion, **motionData)
 
             del warpTomo
+            pbar.update()
 
         tomoStarTables['global'] = pd.concat(globalList)
         writeStarFile(tomoOutFname, tomoStarTables)
