@@ -459,6 +459,9 @@ def warpTomo2RelionProgram(args=None):
     particlesFn = arguments['-p']
     doTraject = particlesFn is not None
 
+    os.makedirs(outRoot, exist_ok=True)
+    tomoOutFname = os.path.join(outRoot, 'tomograms.star')
+
     if doTraject:
         motionOutFn = os.path.join(outRoot, 'motion.star')
         applyGlobalWarp = not arguments['--ignore_global_warp']
@@ -476,12 +479,6 @@ def warpTomo2RelionProgram(args=None):
     xmlList = glob(xmlTmpl)
     tsList = glob(tsTmpl)
     nTomos = len(xmlList)
-
-    if os.path.exists(outRoot):
-        cleanDir(outRoot)
-    else:
-        os.makedirs(outRoot, exist_ok=True)
-    tomoOutFname = os.path.join(outRoot, 'tomograms.star')
 
     if nTomos == 1:
         warpTomo = WarpTomo2Relion(tsList[0], xmlList[0], thickness,
