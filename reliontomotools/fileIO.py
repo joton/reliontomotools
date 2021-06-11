@@ -189,10 +189,10 @@ class WarpXMLHandler():
         if '@Duration' in gridParam:
             t = int(gridParam['@Duration'])
             dims = 4
-            shape = (d, h, w, t)
+            shape = (w, h, d, t)
         else:
             dims = 3
-            shape = (d, h, w)
+            shape = (w, h, d)
 
         if np.prod(shape) == 1:
             gridParamList = [gridParam['Node']]
@@ -206,7 +206,7 @@ class WarpXMLHandler():
             y = int(item['@Y'])
             z = int(item['@Z'])
             v = float(item['@Value'])
-            pos = (z, y, x)
+            pos = (x, y, z)
 
             if dims > 3:
                 tw = int(item['@W'])
