@@ -67,7 +67,7 @@ class WarpTomo2Relion():
         fc = len(angles)
 
         if fc != self.fc_ts:
-            raise Exception(f'getInvAffineTransforms: Tilt series size in '
+            raise Exception(f'getImodVolToProjTransforms: Tilt series size in '
                             'Warp {fc} and stack size {self.fc_ts} mismatch.')
 
         origOffProjAdd = getShiftMatrix([*self.origCenter, 0])
