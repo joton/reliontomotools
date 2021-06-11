@@ -489,6 +489,8 @@ def warpTomo2RelionProgram(args=None):
 
         warpTomo.writeTomogramStarFile(tomoOutFname, particlesFn,
                                        motionOutFn, applyGlobalWarp,
+                                       applyLocalWarpVol,
+                                       applyLocalWarpImg)
     else:
 
         p = 0
