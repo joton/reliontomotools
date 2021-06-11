@@ -472,6 +472,7 @@ def warpTomo2RelionProgram(args=None):
 
     os.makedirs(outRoot, exist_ok=True)
     tomoOutFname = os.path.join(outRoot, 'tomograms.star')
+    opSetOutFname = os.path.join(outRoot, 'optimisation_set.star')
 
     if doTraject:
         motionOutFn = os.path.join(outRoot, 'motion.star')
@@ -574,3 +575,13 @@ def warpTomo2RelionProgram(args=None):
                                                columns=['value']),
                           **motion)
             writeStarFile(motionOutFn, motion)
+
+    opSetData = pd.DataFrame(tomoOutFname, index=['_rlnTomoTomogramsFile'],
+                             columns=['value'])
+    if doTraject:
+        opSetData = opSetData.append(pd.DataFrame([particlesFn, motionOutFn],
+                                      index=['_rlnTomoParticlesFile',
+                                             '_rlnTomotrajectoriesFile'],
+                                      columns=['value']))
+
+    writeStarFile(opSetOutFname, opSetData)
