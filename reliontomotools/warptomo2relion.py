@@ -538,7 +538,7 @@ def warpTomo2RelionProgram(args=None):
             tomoStarTables[tomoLabel] = tomoData[tomoLabel]
 
             if doTraject:
-                dataPartTomo = dataPart.loc[dataPart._rlnTomoName==tomoLabel]
+                dataPartTomo = dataPart.loc[dataPart._rlnTomoName == tomoLabel]
                 dataPartTomo = dataPartTomo.reset_index(drop=True)
 
                 motionData = warpTomo.getRelionMotionTable(dataPartTomo,
@@ -560,4 +560,3 @@ def warpTomo2RelionProgram(args=None):
                                                columns=['value']),
                           **motion)
             writeStarFile(motionOutFn, motion)
-
