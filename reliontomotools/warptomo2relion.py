@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import os
-import numpy as np
-from glob import glob
-import mrcfile
-import pandas as pd
 import re
+from glob import glob
+import numpy as np
+import pandas as pd
 from docopt import docopt
+from scipy.interpolate import interpn
+import mrcfile
 from ._version import __version__
 from .utils import rotX, rotY, rotZ, getShiftMatrix
 from .fileIO import readStarFile, writeStarFile, WarpXMLHandler, cleanDir
@@ -188,7 +189,21 @@ class WarpTomo2Relion():
 
         return np.column_stack((defMax, defMin, defAngle, dose))
 
-    def getWarpLocalCorrection(self, dataPart, applyGlobWarp=True):
+    def getInterpolated(self, param, gridCoords):
+
+        if param not in self.warp.params:
+            raise Exception(f'{param} not present in warp data.')
+
+        gridData = self.warp[param]
+        iSize = gridData.shape
+        XXref = list()
+        for size in iSize:
+            XXref.append(np.linspace(0, 1, size))
+
+        return interpn(XXref, gridData, gridCoords)
+
+    def getWarpLocalCorrection(self, dataPart, applyGlobWarp=True,
+                               applyLocalWarpVol=True, applyLocalWarpImg=True):
 
         nPart = len(dataPart)
 
@@ -197,6 +212,22 @@ class WarpTomo2Relion():
         coords = dataPart[['_rlnCoordinateX',
                            '_rlnCoordinateY',
                            '_rlnCoordinateZ']].values.astype(np.float)
+
+        coordsTmp = coords
+
+        if applyLocalWarpVol:
+            dose = self.warp.Dose
+            doseMax = dose.max()
+            doseMin = dose.min()
+            doseStep = 1./(doseMax - doseMin)
+
+            gridCoords4Norm = np.empty((nPart, 4))
+            gridCoords4Norm[:, 0] = coords[:, 0]/self.w_out
+            gridCoords4Norm[:, 1] = coords[:, 1]/self.h_out
+            gridCoords4Norm[:, 2] = coords[:, 2]/self.d_out
+
+        if applyLocalWarpImg:
+            gridStep = 1./(self.fc_ts - 1)
 
         for kt in range(self.fc_ts):
 
@@ -208,13 +239,46 @@ class WarpTomo2Relion():
 
             rotVol2Proj = self.relionTransforms[kt]
 
+            if applyLocalWarpVol:
+                gridCoords4Norm[:, 3] = (dose[kt] - doseMin)*doseStep
+
+                gridVolWarp = np.empty_like(coords)
+                gridVolWarp[:, 0] = self.getInterpolated('GridVolumeWarpX',
+                                                         gridCoords4Norm)
+                gridVolWarp[:, 1] = self.getInterpolated('GridVolumeWarpY',
+                                                         gridCoords4Norm)
+                gridVolWarp[:, 2] = self.getInterpolated('GridVolumeWarpZ',
+                                                         gridCoords4Norm)
+                coordsTmp = coords + gridVolWarp/self.angpix
+
             for kp in range(nPart):
-                coordVol = getShiftMatrix(coords[kp, :])
+                coordVolOrig = coords[kp, :]
+                coordVol = coordsTmp[kp, :]
 
-                coordProj = rotVol2Proj@coordVol
-                newCoordVol = rotProj2Vol@coordProj
+                coordProj = rotVol2Proj@getShiftMatrix(coordVol)
 
-                coordDiff[kp, kt, :] = (newCoordVol - coordVol)[0:3, 3].T
+                if applyLocalWarpImg:
+                    gridCoordProjNorm = np.array([
+                        coordProj[0, 3]/self.w_ts,
+                        coordProj[1, 3]/self.h_ts,
+                        kt * gridStep])
+
+                    # if np.any(gridCoordProjNorm > 1):
+                    #     print(f'kt = {kt} - kp = {kp}')
+                    #     print(f'coordVolOrig={coordVolOrig}')
+                    #     print(f'coordVol={coordVol}')
+                    #     print(f'coordProj={coordProj}')
+
+                    gridMovWarpX = self.getInterpolated('GridMovementX',
+                                                        gridCoordProjNorm)
+                    gridMovWarpY = self.getInterpolated('GridMovementY',
+                                                        gridCoordProjNorm)
+                    coordProj[0, 3] -= gridMovWarpX/self.angpix
+                    coordProj[1, 3] -= gridMovWarpY/self.angpix
+
+                newCoordVol = (rotProj2Vol@coordProj)[0:3, 3].T
+
+                coordDiff[kp, kt, :] = newCoordVol - coordVolOrig
 
         coordDiff *= self.angpix
 
@@ -298,7 +362,8 @@ class WarpTomo2Relion():
 
         return tomoTables
 
-    def getRelionMotionTable(self, dataPart, applyGlobWarp=True):
+    def getRelionMotionTable(self, dataPart, applyGlobWarp=True,
+                             applyLocalWarpVol=True, applyLocalWarpImg=True):
 
         if '_rlnTomoParticleName' not in dataPart.columns:
             raise Exception('ERROR: getRelionMotionTable requires '
@@ -311,8 +376,9 @@ class WarpTomo2Relion():
         motionTable = dict()
         nPart = len(dataPart)
 
-        motion = self.getWarpLocalCorrection(dataPart,
-                                             applyGlobWarp).astype(str)
+        motion = self.getWarpLocalCorrection(dataPart, applyGlobWarp,
+                                             applyLocalWarpVol,
+                                             applyLocalWarpImg).astype(str)
 
         for k in range(nPart):
             partName = dataPart.loc[k, '_rlnTomoParticleName']
@@ -323,7 +389,8 @@ class WarpTomo2Relion():
         return motionTable
 
     def writeTomogramStarFile(self, tomoOutFname, particlesFn=None,
-                              motionOutFn=None, applyGlobWarp=True):
+                              motionOutFn=None, applyGlobWarp=True,
+                              applyLocalWarpVol=True, applyLocalWarpImg=True):
 
         if particlesFn is not None:
             dataPart = readStarFile(particlesFn, 'particles')
@@ -339,7 +406,9 @@ class WarpTomo2Relion():
         writeStarFile(tomoOutFname, tomoTables['tomo'])
 
         if dataPart is not None:
-            motion = self.getRelionMotionTable(dataPart, _applyGlobWarp)
+            motion = self.getRelionMotionTable(dataPart, _applyGlobWarp,
+                                               applyLocalWarpVol,
+                                               applyLocalWarpImg)
 
             nPart = len(dataPart)
             motion = dict(general=pd.DataFrame(str(nPart),
@@ -371,7 +440,8 @@ def warpTomo2RelionProgram(args=None):
          -p <particles_fn>  Relion particle set to convert Warp/M local
                             mprovements. This option creates a trajectory file.
       --ignore_global_warp  Do not apply global warp angles correction.
-       --ignore_local_warp  Do not apply local warp offsets correction.
+       --ignore_vol_warp    Do not apply local volume warp offsets correction.
+       --ignore_img_warp    Do not apply local image warp offsets correction.
 
                  -h --help  Show this screen.
               -v --version  Show version.
@@ -392,11 +462,16 @@ def warpTomo2RelionProgram(args=None):
     if doTraject:
         motionOutFn = os.path.join(outRoot, 'motion.star')
         applyGlobalWarp = not arguments['--ignore_global_warp']
-        applyLocalWarp = not arguments['--ignore_local_warp']
+        applyLocalWarpVol = not arguments['--ignore_vol_warp']
+        applyLocalWarpImg = not arguments['--ignore_img_warp']
+
+        if os.path.exists(motionOutFn):
+            os.remove(motionOutFn)
     else:
         motionOutFn = None
         applyGlobalWarp = False
-        applyLocalWarp = False
+        applyLocalWarpVol = False
+        applyLocalWarpImg = False
 
     xmlList = glob(xmlTmpl)
     tsList = glob(tsTmpl)
