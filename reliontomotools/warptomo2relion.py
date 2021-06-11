@@ -87,7 +87,7 @@ class WarpTomo2Relion():
 
         self.aliCenter = np.array([self.w_ali - 1, self.h_ali - 1])/2.
 
-        origOffVolSub = np.identity(4)
+        origOffVolSub = np.asmatrix(np.identity(4))
         origOffVolSub[[0, 2], 3] = -self.aliCenter
         origOffVolSub[1, 3] = -(self.thickness)/2.0
 
@@ -468,6 +468,8 @@ def warpTomo2RelionProgram(args=None):
 
                 motionData = warpTomo.getRelionMotionTable(dataPartTomo,
                                                            applyGlobWarp,
+                                                           applyLocalWarpVol,
+                                                           applyLocalWarpImg)
 
                 motion = dict(motion, **motionData)
 
