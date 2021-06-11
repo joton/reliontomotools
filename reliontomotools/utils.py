@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Fri May 28 10:23:52 2021
-
-@author: joton
-"""
 
 import numpy as np
 # from transforms3d.euler import euler2mat, mat2euler
