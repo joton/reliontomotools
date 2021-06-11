@@ -11,7 +11,7 @@ from scipy.interpolate import interpn
 import mrcfile
 from ._version import __version__
 from .utils import rotX, rotY, rotZ, getShiftMatrix
-from .fileIO import readStarFile, writeStarFile, WarpXMLHandler, cleanDir
+from .fileIO import readStarFile, writeStarFile, WarpXMLHandler
 
 __all__ = ['WarpTomo2Relion', 'warpTomo2RelionProgram']
 # % Warp To Relion Converter
