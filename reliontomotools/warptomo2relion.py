@@ -490,9 +490,26 @@ def warpTomo2RelionProgram(args=None):
     tsList = glob(tsTmpl)
     nTomos = len(xmlList)
 
+    # Get Tomo numbers and labels from xml/ts filenames
+    p = 0
+    for c in tomoName:
+        if c.isdigit():
+            break
+        p += 1
+    tnTmpl = tomoName[0:p]
+
+    xmlNums = np.array([int(re.findall(f'{tnTmpl}\d+', name)[0][p:])
+                        for name in xmlList])
+    xmlLabels = np.array([re.findall(f'{tnTmpl}\d+', name)[0]
+                         for name in xmlList])
+    tsLabels = np.array([re.findall(f'{tnTmpl}\d+', name)[0]
+                         for name in tsList])
+
     if nTomos == 1:
+
+        tomoLabel = str(xmlLabels[0])
         warpTomo = WarpTomo2Relion(tsList[0], xmlList[0], thickness,
-                                   tomoName=tomoName, flipZ=flipZ,
+                                   tomoName=tomoLabel, flipZ=flipZ,
                                    flipAngles=flipAngles, hand=hand)
 
         warpTomo.writeTomogramStarFile(tomoOutFname, particlesFn,
@@ -500,20 +517,6 @@ def warpTomo2RelionProgram(args=None):
                                        applyLocalWarpVol,
                                        applyLocalWarpImg)
     else:
-
-        p = 0
-        for c in tomoName:
-            if c.isdigit():
-                break
-            p += 1
-        tnTmpl = tomoName[0:p]
-
-        xmlNums = np.array([int(re.findall(f'{tnTmpl}\d+', name)[0][p:])
-                            for name in xmlList])
-        xmlLabels = np.array([re.findall(f'{tnTmpl}\d+', name)[0]
-                             for name in xmlList])
-        tsLabels = np.array([re.findall(f'{tnTmpl}\d+', name)[0]
-                             for name in tsList])
 
         xmlOrder = np.argsort(xmlNums)
 
