@@ -406,7 +406,7 @@ class WarpTomo2Relion():
 
         tomoTables = self.getRelionTomoTables(_applyGlobWarp)
 
-        writeStarFile(tomoOutFname, tomoTables['tomo'])
+        writeStarFile(tomoOutFname, tomoTables)
 
         if dataPart is not None:
             motion = self.getRelionMotionTable(dataPart, _applyGlobWarp,
