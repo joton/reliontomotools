@@ -532,7 +532,7 @@ def warpTomo2RelionProgram(args=None):
             warpTomo = WarpTomo2Relion(tsList[kt], xmlList[kx], thickness,
                                        tomoName=tomoLabel)
 
-            tomoData = warpTomo.getRelionTomoTables(applyGlobWarp)
+            tomoData = warpTomo.getRelionTomoTables(applyGlobalWarp)
 
             globalList.append(tomoData['global'])
             tomoStarTables[tomoLabel] = tomoData[tomoLabel]
@@ -542,7 +542,7 @@ def warpTomo2RelionProgram(args=None):
                 dataPartTomo = dataPartTomo.reset_index(drop=True)
 
                 motionData = warpTomo.getRelionMotionTable(dataPartTomo,
-                                                           applyGlobWarp,
+                                                           applyGlobalWarp,
                                                            applyLocalWarpVol,
                                                            applyLocalWarpImg)
 
