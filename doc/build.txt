@@ -34,4 +34,4 @@ conda convert --platform all /lmb/home/joton/opt/anaconda3/conda-bld/linux-64/re
 
 # Conda upload
 
-conda upload  /lmb/home/joton/opt/anaconda3/conda-bld/linux-64/reliontomotools-0.0.1-py37_0.tar.bz2
+anaconda conda upload  /lmb/home/joton/opt/anaconda3/conda-bld/linux-64/reliontomotools-0.0.1-py37_0.tar.bz2
