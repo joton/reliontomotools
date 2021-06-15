@@ -3,7 +3,12 @@
 Complimentary tools for Subtomogram analysis in Relion tomo.
 
 
-## scripts
+## Install
+```bash
+pip install reliontomotools
+```
+
+## Scripts
 
 ```python
 warptomo2relion
