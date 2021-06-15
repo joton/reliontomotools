@@ -10,7 +10,7 @@ setup(
       name=pkg,
       version=__version__,
       author="Joaquín Otón",
-      description="External tools for Relion tomo",
+      description="Additional tools for Relion tomo",
       long_description=long_description,
       long_description_content_type="text/markdown",
       url="https://github.com/joton/reliontomotools",

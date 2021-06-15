@@ -1,7 +1,14 @@
 # reliontomotools
 
-## install
-```bash
-pip install git+https://github.com/joton/reliontomotools.git
+Complimentary tools for Subtomogram analysis in Relion tomo.
+
+
+## scripts
+
+```python
+warptomo2relion
 ```
+
+Converts refinement of deformation models, particle poses and CTF paramaters from WARP/M to Relion tomo.
+
 
