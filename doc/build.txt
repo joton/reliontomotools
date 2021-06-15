@@ -1,0 +1,37 @@
+# Developer install
+
+python setup.py develop
+
+# Manual installation, files location
+
+python setup.py install --reconrd files.txt
+
+# PyPI package building
+
+python -m build
+
+# PyPI TEST upload
+
+twine upload --repository testpypi dist/reliontomotools-X.X.X*
+
+
+# PyPI upload
+
+twine upload dist/reliontomotools-X.X.X*
+
+# Conda package building
+
+cd conda
+conda build . -c conda-forge
+
+# Conda local package installation
+
+conda install --use-local reliontomotools
+
+# Conda platform conversion
+
+conda convert --platform all /lmb/home/joton/opt/anaconda3/conda-bld/linux-64/reliontomotools-0.0.1-py37_0.tar.bz2 -o allplatforms/
+
+# Conda upload
+
+conda upload  /lmb/home/joton/opt/anaconda3/conda-bld/linux-64/reliontomotools-0.0.1-py37_0.tar.bz2
