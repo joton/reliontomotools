@@ -1,6 +1,6 @@
 # reliontomotools
 
-Complimentary tools for Subtomogram analysis in Relion tomo.
+Additional tools for subtomogram analysis in Relion tomo.
 
 
 ## Install
