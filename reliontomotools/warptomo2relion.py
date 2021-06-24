@@ -581,7 +581,7 @@ def warpTomo2RelionProgram(args=None):
     if doTraject:
         opSetData = opSetData.append(pd.DataFrame([particlesFn, motionOutFn],
                                       index=['_rlnTomoParticlesFile',
-                                             '_rlnTomotrajectoriesFile'],
+                                             '_rlnTomoTrajectoriesFile'],
                                       columns=['value']))
 
     writeStarFile(opSetOutFname, opSetData)
