@@ -4,7 +4,7 @@ python setup.py develop
 
 # Manual installation, files location
 
-python setup.py install --reconrd files.txt
+python setup.py install --record files.txt
 
 # PyPI package building
 
@@ -34,4 +34,4 @@ conda convert --platform all /lmb/home/joton/opt/anaconda3/conda-bld/linux-64/re
 
 # Conda upload
 
-anaconda conda upload  /lmb/home/joton/opt/anaconda3/conda-bld/linux-64/reliontomotools-0.0.1-py37_0.tar.bz2
+anaconda upload  /lmb/home/joton/opt/anaconda3/conda-bld/linux-64/reliontomotools-0.0.1-py37_0.tar.bz2
