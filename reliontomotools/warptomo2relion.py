@@ -159,7 +159,13 @@ class WarpTomo2Relion():
         angleY = -np.squeeze(self.warp.GridAngleY)
         angleZ = -np.squeeze(self.warp.GridAngleZ)
 
-        if len(angleX.shape) > 1:
+        angleXndims = angleX.ndim
+        # If only one value, we use it for all tilt angles
+        if angleXndims == 0:
+            angleX = angleX * np.ones(self.fc_ts)
+            angleY = angleY * np.ones(self.fc_ts)
+            angleZ = angleZ * np.ones(self.fc_ts)
+        elif angleXndims > 1:
             raise Exception('Local Warp angles correction is not currently '
                             'supported.')
 
@@ -199,6 +205,11 @@ class WarpTomo2Relion():
             raise Exception(f'{param} not present in warp data.')
 
         gridData = self.warp[param]
+        # If only one single value instead of a grid, return it
+        sqData = np.squeeze(gridData)
+        if sqData.ndim == 0:
+            return sqData
+
         iSize = gridData.shape
         XXref = list()
         for size in iSize:
