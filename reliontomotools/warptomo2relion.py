@@ -439,7 +439,9 @@ def warpTomo2RelionProgram(args=None):
     doc = """warptomo2relion: converts warp tomo metadata to Relion.
 
     Usage:
-      warptomo2relion -i <xml_template> -s <ts_template> -d <thickness> -o <outDir> [options]
+      warptomo2relion -i <xml_template> -s <ts_template> -d <thickness> -o <outDir> 
+                      [(--width <x_size> --height <y_size>)] [options]
+      
 
     Arguments:
          -i <xml_template>  Single Warp XML filename or file list/template with
@@ -454,6 +456,10 @@ def warpTomo2RelionProgram(args=None):
                             It is used as tomoName label. [Default: TS_01]
          -p <particles_fn>  Relion particle set to convert Warp/M local
                             improvements. This option creates a trajectory file.
+          --width <x_size>  Tomogram width used for all tomograms, in pixels
+                            at bin1. If negative, extracted from tilt series [Default: -1]
+         --height <y_size>  Tomogram height used for all tomograms, in pixels
+                            at bin1. If negative, extracted from tilt series [Default: -1]
       --ignore_global_warp  Do not apply global warp angles correction.
          --ignore_vol_warp  Do not apply local volume warp offsets correction.
          --ignore_img_warp  Do not apply local image warp offsets correction.
@@ -473,6 +479,8 @@ def warpTomo2RelionProgram(args=None):
     tsTmpl = arguments['-s']
     outRoot = arguments['-o']
     thickness = int(arguments['--depth'])
+    xSize = int(arguments['--width'])
+    ySize = int(arguments['--height'])
     tomoName = arguments['--tn']
     particlesFn = arguments['-p']
     doTraject = particlesFn is not None
@@ -480,6 +488,11 @@ def warpTomo2RelionProgram(args=None):
     flipZ = arguments['--flipZ']
     flipAngles = arguments['--flipAng']
     hand = arguments['--hand']
+
+    if xSize > 0:
+        aliDims = (xSize, ySize)
+    else:
+        aliDims = None
 
     os.makedirs(outRoot, exist_ok=True)
     tomoOutFname = os.path.join(outRoot, 'tomograms.star')
@@ -523,7 +536,8 @@ def warpTomo2RelionProgram(args=None):
         tomoLabel = str(xmlLabels[0])
         warpTomo = WarpTomo2Relion(tsList[0], xmlList[0], thickness,
                                    tomoName=tomoLabel, flipZ=flipZ,
-                                   flipAngles=flipAngles, hand=hand)
+                                   flipAngles=flipAngles, hand=hand,
+                                   aliDims=aliDims)
 
         warpTomo.writeTomogramStarFile(tomoOutFname, particlesFn,
                                        motionOutFn, applyGlobalWarp,
@@ -555,7 +569,8 @@ def warpTomo2RelionProgram(args=None):
 
             warpTomo = WarpTomo2Relion(tsList[kt], xmlList[kx], thickness,
                                        tomoName=tomoLabel, flipZ=flipZ,
-                                       flipAngles=flipAngles, hand=hand)
+                                       flipAngles=flipAngles, hand=hand,
+                                       aliDims=aliDims)
 
             tomoData = warpTomo.getRelionTomoTables(applyGlobalWarp)
 
